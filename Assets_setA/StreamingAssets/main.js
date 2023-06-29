@@ -3,6 +3,7 @@ import { Map, View } from 'ol';
 import TileLayer from 'ol/layer/Tile';
 import XYZ from 'ol/source/XYZ';
 
+
 const map = new Map({
   target: 'map',
   layers: [
@@ -17,3 +18,12 @@ const map = new Map({
     zoom: 2,
   }),
 });
+
+function get_zoom_level(viewID) {
+  return 10;
+};
+
+function set_zoom_level(viewID, zoomlv){
+  const view = map.getView();
+  view.setZoom(zoomlv);
+};

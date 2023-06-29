@@ -31,15 +31,98 @@ public class SampleWebView : MonoBehaviour
     public Text status;
     WebViewObject webViewObject;
 
+    private string currentZoomLv;
+    private string convertMgrsResult;
+    private string convertLonlatResult;
+
+    string[] parts;
+    string function;
+    string result;
+
+    public Button myButton;  // 버튼에 대한 참조
+    public Text myText;
+
+    void OnButtonClick()
+    {
+        // 버튼이 클릭되면 convert_lonlat 코루틴을 시작합니다.
+        Debug.Log("[A] Button Clicked");
+        StartCoroutine(convert_mgrs("input"));
+    }
+
+    public IEnumerator convert_mgrs(string input)
+    {
+        // 결과를 초기화합니다.
+        currentZoomLv = null;
+
+        // JavaScript의 convert_mgrs 함수를 호출합니다.
+        webViewObject.EvaluateJS($"javascript:facade.view.get_zoom_levevl(0)");
+        //webViewObject.EvaluateJS($"get_zoom_level(0)");
+        // JavaScript에서 convert_mgrs의 결과를 받을 때까지 기다립니다.
+        yield return new WaitUntil(() => currentZoomLv != null);
+
+        // 결과를 출력합니다.
+        //Debug.Log($"[C] convert_mgrs Result: {convertMgrsResult}");
+
+        myText.text = currentZoomLv;
+
+        webViewObject.EvaluateJS($"javascript:facade.view.set_zoom_levevl(0, 12)");
+        //webViewObject.EvaluateJS($"set_zoom_level(0, 12)");
+    }
+
+    public IEnumerator convert_lonlat(string input)
+    {
+        // 결과를 초기화합니다.
+        convertLonlatResult = null;
+
+        // JavaScript의 convert_lonlat 함수를 호출합니다.
+        webViewObject.EvaluateJS($"convert_lonlat('{input}')");
+
+        // JavaScript에서 convert_lonlat의 결과를 받을 때까지 기다립니다.
+        yield return new WaitUntil(() => convertLonlatResult != null);
+
+        // 결과를 출력합니다.
+        Debug.Log($"[C] convert_lonlat Result: {convertLonlatResult}");
+    }
+
     IEnumerator Start()
     {
+        myButton.onClick.AddListener(OnButtonClick);
+
         webViewObject = (new GameObject("WebViewObject")).AddComponent<WebViewObject>();
         webViewObject.Init(
             cb: (msg) =>
             {
-                Debug.Log(string.Format("CallFromJS[{0}]", msg));
-                status.text = msg;
-                status.GetComponent<Animation>().Play();
+                //Debug.Log(string.Format("CallFromJS[{0}]", msg));
+                //status.text = msg;
+                //status.GetComponent<Animation>().Play();
+
+                // JavaScript에서 보낸 메시지를 처리합니다.
+                parts = msg.Split(':');
+                if (parts.Length < 2)
+                {
+                    // 적절한 오류 메시지 출력 또는 오류 처리
+                    result = parts[0];
+                }
+                else
+                {
+                    function = parts[0];
+                    result = parts[1];
+                }
+
+                // 어떤 함수의 결과인지를 확인하고, 해당 변수에 결과를 저장합니다.
+                if (function == "convert_mgrs")
+                {
+                    convertMgrsResult = result;
+                }
+                else if (function == "convert_lonlat")
+                {
+                    Debug.Log($"[B] convert_lonlat Result: {convertLonlatResult}");
+                    convertLonlatResult = result;
+                }
+                else{
+                    currentZoomLv = result;
+                    //status.GetComponent<Animation>().Play;
+                }
             },
             err: (msg) =>
             {
