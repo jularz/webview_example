@@ -8,7 +8,7 @@ const map = new Map({
   layers: [
     new TileLayer({
       source: new XYZ({
-        url: 'map_data/{z}/{x}/{y}.png', // XYZ 타일의 경로를 지정
+        url: 'file:///data/data/com.DefaultCompany.android_build_test_webviewUI/files/map_data/{z}/{x}/{y}.png', // XYZ 타일의 경로를 지정
       }),
     }),
   ],
