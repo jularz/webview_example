@@ -753,32 +753,65 @@ viewshedMemoryType* ViewshedRenderer::ViewshedGenerate(
         CPLError(CE_Failure, CPLE_UserInterrupt, "User terminated");
         return nullptr;
     }
-    //GDALRasterBand* result = poDstDS->GetRasterBand(1);
+    
+    
+    
+    
     unsigned char* pafScanline = (unsigned char*)CPLMalloc(sizeof(unsigned char) * nXSize * nYSize);
-    //float* pafScanline = (float*)CPLMalloc(sizeof(float) * nXSize);
     hTargetBand->RasterIO(GF_Read, 0, 0, nXSize, nYSize, pafScanline, nXSize, nYSize, GDT_Byte, 0, 0);
-
-    viewshedMemoryType* memoryType = (viewshedMemoryType *)malloc(sizeof(viewshedMemoryType));
-    
-
-    memoryType->data = pafScanline;
-    memoryType->size = nXSize * nYSize;
-    memoryType->nXSize = nXSize;
-    memoryType->nYSize = nYSize;
-    
-    adfGeoTransform;
 
     double geoTransformResult[6];
     poDstDS->GetGeoTransform(geoTransformResult);
     const char* pszProjection = poDstDS->GetProjectionRef();
-    double xTopLeft = adfGeoTransform[0];
-    double yTopLeft = adfGeoTransform[3];
-    double xBottomRight = adfGeoTransform[0] + (nXSize - 1) * adfGeoTransform[1] + (nYSize - 1) * adfGeoTransform[2];
-    double yBottomRight = adfGeoTransform[3] + (nXSize - 1) * adfGeoTransform[4] + (nYSize - 1) * adfGeoTransform[5];
+
+    OGRSpatialReference oSourceSRS;
+    oSourceSRS.importFromWkt(pszProjection);
+
+    OGRSpatialReference oTargetSRS;
+    oTargetSRS.importFromEPSG(3857);
+
+    OGRCoordinateTransformation* poCT = OGRCreateCoordinateTransformation(&oSourceSRS, &oTargetSRS);
+
+    double xTopLeft = geoTransformResult[0];
+    double yTopLeft = geoTransformResult[3];
+    double xBottomRight = geoTransformResult[0] + (nXSize - 1) * geoTransformResult[1] + (nYSize - 1) * geoTransformResult[2];
+    double yBottomRight = geoTransformResult[3] + (nXSize - 1) * geoTransformResult[4] + (nYSize - 1) * geoTransformResult[5];
+
+    if (poCT == NULL)
+    {
+        // 에러 처리
+        return nullptr;
+    }
+
+    // 좌상단 좌표 변환
+    if (!poCT->Transform(1, &xTopLeft, &yTopLeft))
+    {
+        // 변환 실패 처리
+        return nullptr;
+    }
+
+    // 우하단 좌표 변환
+    if (!poCT->Transform(1, &xBottomRight, &yBottomRight))
+    {
+        // 변환 실패 처리
+        return nullptr;
+    }
+
+    OGRCoordinateTransformation::DestroyCT(poCT);
+
+    viewshedMemoryType* memoryType = (viewshedMemoryType*)malloc(sizeof(viewshedMemoryType));
     
+    if (memoryType != NULL) {
+        // pafScanline 사용 종료 후, free 필요
+        memoryType->data = pafScanline;
+        memoryType->size = nXSize * nYSize;
+        memoryType->nXSize = nXSize;
+        memoryType->nYSize = nYSize;
+        memoryType->xTopLeft = xTopLeft;
+    }
+   
     GDALDataset::FromHandle(poDstDS.release());
 
-    //return GDALDataset::FromHandle(poDstDS.release());
     return memoryType;
 }
 

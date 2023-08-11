@@ -31,6 +31,10 @@ struct viewshedMemoryType {
     unsigned int size;
     int nXSize;
     int nYSize;
+    double xTopLeft;
+    double yTopLeft;
+    double xBottomRight;
+    double yBottomRight;
 
 };
 
