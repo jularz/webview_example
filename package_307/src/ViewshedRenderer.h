@@ -56,5 +56,16 @@ public:
         void* pProgressArg, GDALViewshedOutputType heightMode,
         CSLConstList papszExtraOptions);
     viewshedMemoryType* GenerateViewshedRasterBuffer(CDC* pDC);
+
+    viewshedMemoryType* viewshed_generate_via_vector(
+        GDALRasterBandH hBand, const char* pszDriverName,
+        const char* pszTargetRasterName, CSLConstList papszCreationOptions,
+        double dfObserverX, double dfObserverY, double dfObserverHeight,
+        double dfTargetHeight, double dfVisibleVal, double dfInvisibleVal,
+        double dfOutOfRangeVal, double dfNoDataVal, double dfCurvCoeff,
+        GDALViewshedMode eMode, double dfMaxDistance, GDALProgressFunc pfnProgress,
+        void* pProgressArg, GDALViewshedOutputType heightMode,
+        CSLConstList papszExtraOptions);
+    char* generate_viewshed_vector_buffer(CDC* pDC);
 };
 
