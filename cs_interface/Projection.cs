@@ -1,18 +1,13 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public class Projection : MonoBehaviour
+﻿using System;
+namespace SMARTGIS
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+	public class Projection
+	{
+		public enum Kind
+		{
+			EPSG_3857 = 3857,
+			EPSG_4326 = 4326,
+			EPSG_900931 = 900931
+		}
+	}
 }
